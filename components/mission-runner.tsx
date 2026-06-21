@@ -63,6 +63,11 @@ export function MissionRunner() {
   return (
     <div className="flex w-full flex-col items-center text-center">
       <Badge className="mb-4">{phrase.context}</Badge>
+
+      <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+        Эта фраза — про тебя. Послушай и повтори вслух.
+      </p>
+
       <h2 className="mb-2 text-3xl font-bold text-white">{phrase.it}</h2>
       <p className="mb-6 text-zinc-400">{phrase.ru}</p>
 
