@@ -12,10 +12,12 @@ export function MissionRunner() {
     "idle" | "listening" | "correct" | "retry"
   >("idle");
   const [heard, setHeard] = useState("");
+  const [completed, setCompleted] = useState(false);
 
   const phrases = italianPack.phrases;
   const phrase: Phrase = phrases[index];
-  const progress = Math.round((index / phrases.length) * 100);
+  const progress = Math.round(((index + 1) / phrases.length) * 100);
+  const isLast = index === phrases.length - 1;
 
   function speak(text: string) {
     const utter = new SpeechSynthesisUtterance(text);
@@ -55,9 +57,39 @@ export function MissionRunner() {
   }
 
   function next() {
+    if (isLast) {
+      setCompleted(true);
+      return;
+    }
     setStatus("idle");
     setHeard("");
-    setIndex((i) => Math.min(i + 1, phrases.length - 1));
+    setIndex((i) => i + 1);
+  }
+
+  function restart() {
+    setCompleted(false);
+    setStatus("idle");
+    setHeard("");
+    setIndex(0);
+  }
+
+  if (completed) {
+    return (
+      <div className="flex w-full flex-col items-center text-center py-8">
+        <div className="mb-4 text-5xl">🎉</div>
+        <h2 className="mb-2 text-3xl font-bold text-zinc-50">День 1 пройден</h2>
+        <p className="mb-8 text-zinc-300">
+          Ты проговорил все {phrases.length} фраз. Повтори ещё раз — повторение
+          закрепляет автоматизм лучше, чем переход дальше.
+        </p>
+        <Button
+          className="bg-amber-400 text-zinc-950 hover:bg-amber-300"
+          onClick={restart}
+        >
+          🔁 Пройти ещё раз
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -114,10 +146,10 @@ export function MissionRunner() {
 
       <Button
         variant="ghost"
-        className="text-zinc-300 hover:text-amber-300"
+        className="bg-transparent text-zinc-300 hover:bg-zinc-800 hover:text-amber-300"
         onClick={next}
       >
-        Следующая фраза →
+        {isLast ? "Завершить день →" : "Следующая фраза →"}
       </Button>
     </div>
   );
