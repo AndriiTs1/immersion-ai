@@ -8,9 +8,7 @@ import { italianPack, type Phrase } from "@/lib/phrases";
 
 export function MissionRunner() {
   const [index, setIndex] = useState(0);
-  const [status, setStatus] = useState<
-    "idle" | "listening" | "correct" | "retry"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "listening" | "correct" | "retry">("idle");
   const [heard, setHeard] = useState("");
   const [completed, setCompleted] = useState(false);
 
@@ -26,31 +24,25 @@ export function MissionRunner() {
   }
 
   function normalize(s: string) {
-    return s
-      .toLowerCase()
-      .replace(/[.,!?]/g, "")
-      .trim();
+    return s.toLowerCase().replace(/[.,!?]/g, "").trim();
   }
 
   function listen() {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    const SpeechRecognitionCtor =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionCtor) {
       alert("Голосовой ввод поддерживается только в Chrome.");
       return;
     }
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionCtor();
     recognition.lang = italianPack.voice;
     recognition.interimResults = false;
 
     setStatus("listening");
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setHeard(transcript);
-      setStatus(
-        normalize(transcript) === normalize(phrase.it) ? "correct" : "retry"
-      );
+      setStatus(normalize(transcript) === normalize(phrase.it) ? "correct" : "retry");
     };
     recognition.onerror = () => setStatus("idle");
     recognition.start();
