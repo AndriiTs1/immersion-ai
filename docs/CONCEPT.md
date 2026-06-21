@@ -23,9 +23,7 @@
 ### 2. Повторение разговорных паттернов
 
 Основа обучения — наиболее частотные конструкции языка. Цикл:
-
 Слушаю → Повторяю → Произношу самостоятельно → Использую в диалоге
-
 Цель — сократить внутренний перевод с родного языка и довести базовые конструкции
 до автоматизма.
 
@@ -130,6 +128,40 @@ type LanguagePack = {
 
 ---
 
+## Структура компонентов
+
+Сложилась в процессе сборки Phrase Engine — главная страница собирается из
+
+небольших переиспользуемых блоков, а не пишется одним файлом:
+
+components/
+
+site-header.tsx — заголовок + бейдж языка
+
+mission-card.tsx — обёртка карточки "Mission" (бейдж дня + MissionRunner)
+
+mission-runner.tsx — цикл Phrase Engine: TTS → STT → сравнение → повтор
+
+streak-card.tsx — карточка Streak
+
+feature-card.tsx — переиспользуемая карточка (Phrase Engine / Shadowing / ...)
+
+lib/
+
+phrases.ts — LanguagePack с личными фразами (Phrase Engine)
+
+features.ts — данные для FeatureCard
+
+app/
+
+page.tsx — сборка всех блоков
+
+Это правило соблюдается и для следующих модулей: Shadowing и Speaking Lab тоже
+получат свой `*-runner.tsx` компонент с собственной логикой, подключаемый в
+соответствующую карточку — по аналогии с `MissionRunner` внутри `MissionCard`.
+
+---
+
 ## Не входит в V1
 
 - Авторизация
@@ -181,10 +213,10 @@ type LanguagePack = {
 
 ### Phrase Engine
 
-- [ ] `lib/phrases.ts` — персонализированные фразы (о себе, работе, городе), оформлены как `LanguagePack`
-- [ ] `components/mission-runner.tsx` — цикл TTS → STT → сравнение → повтор
-- [ ] Подключить `<MissionRunner />` в `app/page.tsx`
-- [ ] Протестировать вживую в Chrome
+- [x] `lib/phrases.ts` — персонализированные фразы (о себе, работе, городе), оформлены как `LanguagePack`
+- [x] `components/mission-runner.tsx` — цикл TTS → STT → сравнение → повтор
+- [x] Подключить `<MissionRunner />` в `app/page.tsx`
+- [x] Протестировать вживую в Chrome
 
 ### Shadowing
 
