@@ -4,47 +4,47 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { italianPack, type Phrase } from "@/lib/phrases";
+import { italianPack } from "@/lib/phrases";
+import { type GrammarPhrase } from "@/lib/grammar";
 import { useSpeechEngine } from "@/hooks/useSpeechEngine";
 
-interface MissionRunnerProps {
-  phrases: Phrase[];
+interface GrammarRunnerProps {
+  phrases: GrammarPhrase[];
+  onClose?: () => void;
   onComplete?: () => void;
+  tenseLabel?: string;
 }
 
-export function MissionRunner({ phrases, onComplete }: MissionRunnerProps) {
+export function GrammarRunner({
+  phrases,
+  onClose,
+  onComplete,
+  tenseLabel = "",
+}: GrammarRunnerProps) {
   const [index, setIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
-  const [tried, setTried] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
   const { status, heard, speak, listen, reset } = useSpeechEngine(italianPack.voice);
 
-  const phrase: Phrase | undefined = phrases[index];
-  const progress = phrases.length > 0
-    ? Math.round(((index + 1) / phrases.length) * 100)
-    : 0;
+  const phrase = phrases[index];
+  const progress = Math.round(((index + 1) / phrases.length) * 100);
   const isLast = index === phrases.length - 1;
-  const canSkip = tried && status !== "correct" && status !== "listening";
-
-  if (!phrase) return null;
 
   function next() {
     if (isLast) {
       if (onComplete) {
-        onComplete();
+        setJustCompleted(true);
+        setTimeout(() => {
+          setJustCompleted(false);
+          onComplete();
+        }, 1000);
         return;
       }
       setCompleted(true);
       return;
     }
     reset();
-    setTried(false);
     setIndex((i) => i + 1);
-  }
-
-  function handleListen() {
-    if (!phrase) return;
-    setTried(true);
-    listen(phrase.it);
   }
 
   function restart() {
@@ -55,33 +55,48 @@ export function MissionRunner({ phrases, onComplete }: MissionRunnerProps) {
 
   if (completed) {
     return (
-      <div className="flex w-full flex-col items-center text-center justify-center h-full py-8">
+      <div className="flex-1 min-h-0 flex w-full flex-col items-center text-center justify-center py-8">
         <div className="mb-4 text-5xl">🎉</div>
-        <h2 className="mb-2 text-3xl font-bold text-zinc-50">День пройден!</h2>
+        <h2 className="mb-2 text-3xl font-bold text-zinc-50">Отлично! Все фразы пройдены.</h2>
         <p className="mb-8 text-zinc-300">
-          Ты проговорил все {phrases.length} фраз. Повтори ещё раз — повторение
-          закрепляет автоматизм лучше, чем переход дальше.
+          Повтори ещё раз — повторение закрепляет автоматизм лучше, чем переход дальше.
         </p>
-        <Button
-          className="bg-amber-400 text-zinc-950 hover:bg-amber-300"
-          onClick={restart}
-        >
-          🔁 Пройти ещё раз
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            className="bg-amber-400 text-zinc-950 hover:bg-amber-300"
+            onClick={restart}
+          >
+            🔁 Пройти ещё раз
+          </Button>
+          {onClose && (
+            <Button
+              variant="ghost"
+              className="bg-transparent text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              onClick={onClose}
+            >
+              ← К теории
+            </Button>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex w-full flex-col items-center text-center h-full">
+    <div className="relative flex-1 min-h-0 flex w-full flex-col items-center text-center">
+      {justCompleted && (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/90 rounded-xl z-10">
+          <p className="text-emerald-400 text-xl font-bold">✓ {tenseLabel} completato</p>
+        </div>
+      )}
 
-      {/* Top: контекст */}
+      {/* Top: местоимение */}
       <div className="shrink-0 pt-2 pb-4">
         <Badge
           variant="outline"
           className="border-amber-400/40 bg-amber-400/10 text-amber-300"
         >
-          {phrase.context}
+          {phrase.pronoun}
         </Badge>
         <p className="mt-2 text-xs uppercase tracking-wide text-zinc-500">
           Послушай и повтори вслух
@@ -90,9 +105,7 @@ export function MissionRunner({ phrases, onComplete }: MissionRunnerProps) {
 
       {/* Middle: фраза */}
       <div className="flex-1 flex flex-col items-center justify-center w-full px-2">
-        <h2 className="text-2xl font-bold text-zinc-50 leading-snug">
-          {phrase.it}
-        </h2>
+        <h2 className="text-2xl font-bold text-zinc-50 leading-snug">{phrase.it}</h2>
         <p className="mt-2 text-zinc-300 text-sm">{phrase.ru}</p>
 
         <div className="mt-3 h-5 flex items-center justify-center">
@@ -122,20 +135,11 @@ export function MissionRunner({ phrases, onComplete }: MissionRunnerProps) {
           </Button>
           <Button
             className="bg-amber-400 text-zinc-950 hover:bg-amber-300"
-            onClick={handleListen}
+            onClick={() => listen(phrase.it)}
             disabled={status === "listening"}
           >
             {status === "listening" ? "Слушаю..." : "🎤 Повторить"}
           </Button>
-          {canSkip && (
-            <Button
-              variant="ghost"
-              className="bg-transparent text-zinc-500 hover:text-zinc-300"
-              onClick={next}
-            >
-              Пропустить →
-            </Button>
-          )}
         </div>
 
         <div className="w-full max-w-xs mx-auto mb-3">
@@ -150,7 +154,7 @@ export function MissionRunner({ phrases, onComplete }: MissionRunnerProps) {
           className="bg-transparent text-zinc-300 hover:bg-zinc-800 hover:text-amber-300"
           onClick={next}
         >
-          {isLast ? "Завершить день →" : "Следующая фраза →"}
+          {isLast ? "Завершить →" : "Следующая фраза →"}
         </Button>
       </div>
     </div>

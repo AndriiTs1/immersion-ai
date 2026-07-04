@@ -128,3 +128,9 @@
     @apply font-sans;
   }
 }
+
+@media (max-width: 1023px) {
+  html {
+    scroll-snap-type: y mandatory;
+  }
+}
